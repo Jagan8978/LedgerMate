@@ -1,0 +1,30 @@
+# Optional convenience: runs ONLY the PostgreSQL database in Docker so you do not have to install
+# PostgreSQL yourself. The backend and frontend still run on your machine (see README.md).
+#
+#   docker compose up -d        start the database
+#   docker compose down         stop it (data is kept in the named volume)
+#   docker compose down -v      stop it AND delete all stored data
+#
+# Reads DB_USERNAME and DB_PASSWORD from the ".env" file in this folder.
+services:
+  db:
+    image: postgres:16
+    container_name: ledgermate-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ledgermate
+      POSTGRES_USER: ${DB_USERNAME:-ledgermate}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in the .env file (copy .env.example to .env first)}
+    ports:
+      # bound to localhost only, so the database is not reachable from other machines
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ledgermate-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d ledgermate"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  ledgermate-data:

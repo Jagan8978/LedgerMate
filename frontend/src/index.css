@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold
+      transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-primary { @apply btn bg-brand text-white hover:bg-brand-light focus-visible:ring-brand; }
+  .btn-secondary { @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 focus-visible:ring-slate-400; }
+  .btn-credit { @apply btn bg-credit text-white hover:bg-green-800 focus-visible:ring-credit; }
+  .btn-debit { @apply btn bg-debit text-white hover:bg-red-800 focus-visible:ring-debit; }
+  .btn-danger { @apply btn border border-red-300 bg-white text-red-700 hover:bg-red-50 focus-visible:ring-red-400; }
+  .btn-link { @apply text-sm font-medium text-brand underline-offset-2 hover:underline; }
+  .card { @apply rounded-xl border border-slate-200 bg-white shadow-sm; }
+  .input {
+    @apply block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900
+      placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30
+      disabled:bg-slate-100;
+  }
+  .input-error { @apply border-red-500 focus:border-red-500 focus:ring-red-300; }
+  .label { @apply mb-1 block text-sm font-medium text-slate-700; }
+  .field-error { @apply mt-1 text-xs text-red-700; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+  .card { box-shadow: none; }
+}

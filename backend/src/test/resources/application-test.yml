@@ -1,0 +1,27 @@
+# Test-only configuration. Uses an in-memory H2 database (PostgreSQL compatibility mode) so the
+# automated tests need no installed database. The signing key below is a dummy value that exists
+# only for tests and protects nothing.
+spring:
+  datasource:
+    url: jdbc:h2:mem:ledgermate-${random.uuid};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;LOCK_TIMEOUT=15000;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  flyway:
+    enabled: true
+
+app:
+  security:
+    jwt-secret: dGVzdC1vbmx5LXNpZ25pbmcta2V5LW5vdC1hLXNlY3JldC0wMTIzNDU2Nzg5LWFiY2RlZg==
+    token-ttl-minutes: 30
+    cookie-secure: false
+    expose-token-in-response: true
+  cors:
+    allowed-origins: http://localhost:5173
+  demo:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.ledgermate: WARN
