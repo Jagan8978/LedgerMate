@@ -185,6 +185,64 @@ npm run build
 * Keep `.env` out of version control; use your platform's secret store.
 * Back up the PostgreSQL database regularly (`pg_dump`).
 
+## Optional public deployment (OCI Always Free, best effort)
+
+The repository includes an opt-in production stack in `docker-compose.production.yml`; it does not
+change the local PostgreSQL-only `docker-compose.yml`. This option uses one user-provisioned OCI VM,
+DuckDNS for a provider-controlled free `duckdns.org` subdomain, Caddy for automatic HTTPS, and a
+persistent PostgreSQL volume. The DuckDNS name is **not a custom domain you own**. OCI's current
+Always Free terms and eligibility, home-region capacity, account verification, resource limits,
+public-IP treatment, and pricing can change. Oracle documents possible reclamation of idle Always
+Free compute instances and limited capacity; therefore this is not guaranteed to remain free,
+available, or permanent. Sign-up may require a payment card. Check the live official terms and
+console labels before creating anything, and do not select paid resources.
+
+Official references (checked October 2026):
+
+* [OCI Always Free resource limits and reclamation](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm)
+* [OCI Free Tier FAQ and signup requirements](https://www.oracle.com/cloud/free/faq/)
+* [DuckDNS terms](https://www.duckdns.org/tac.jsp) and [DNS update specification](https://www.duckdns.org/spec.jsp)
+* [Caddy automatic HTTPS requirements](https://caddyserver.com/docs/automatic-https)
+* [Let's Encrypt documentation](https://letsencrypt.org/docs/)
+
+### User-operated setup
+
+1. Create and secure an OCI Always Free-eligible Linux VM yourself. Choose only resources the OCI
+   console explicitly marks Always Free; check that boot volume and networking stay within the
+   current free allocations. For this stack, prefer the Ampere A1 allowance (up to 2 OCPUs / 12 GB
+   total, subject to availability); the small AMD Micro VM has only 1 GB and is not a suitable target
+   for this full Compose stack. Set a budget alert if available. Allow inbound TCP 80 and 443, and
+   restrict SSH to your own trusted IP addresses. Do not expose PostgreSQL or Spring's port directly.
+2. Register your DuckDNS subdomain and update its IPv4 address to the VM's public IPv4 address.
+   Confirm DNS has propagated before starting Caddy. The service and hostname remain subject to
+   DuckDNS terms and availability.
+3. Install Docker Engine and the Compose plugin on the VM using that operating system's official
+   instructions. Clone this repository. Copy `.env.production.example` to `.env.production` on the
+   VM; edit it locally there and never send or commit it. Use unique strong values for
+   `DB_PASSWORD` and `JWT_SECRET` (Base64 encoding at least 32 random bytes), set
+   `PUBLIC_HOSTNAME` to your DuckDNS hostname, and keep `COOKIE_SECURE=true` and
+   `DEMO_DATA_ENABLED=false`. Do not reuse local development secrets.
+4. From the repository root, start with
+   `docker compose --env-file .env.production -f docker-compose.production.yml up -d --build`.
+   Caddy requires the hostname to resolve to this VM and ports 80/443 to be reachable to obtain and
+   renew a publicly trusted certificate. Visit `https://<your-duckdns-hostname>` and register a new
+   user account.
+5. Back up PostgreSQL off the VM, encrypt the backups, and test restoring them. The named volume is
+   persistence, not a backup. Monitor OCI billing/usage and check the VM periodically. If OCI
+   reclaims or stops the VM, the app may go offline; there is no uptime guarantee or free support
+   SLA.
+
+**Database safety:** production starts a new, empty PostgreSQL volume and Flyway creates only the
+schema. No local database records are copied or migrated. Because your local database has no
+meaningful records, create a fresh production account and enter data there. Keep the local database
+and its backup separate.
+
+**Public exposure warning:** this app currently has no login rate limiting, account lockout, or
+multi-factor authentication. Public internet exposure increases risk. Use unique credentials,
+keep the host patched, monitor logs, and consider adding tested rate limiting before relying on the
+service for sensitive financial records. A free VM and a single local volume are not a resilient or
+backed-up production service.
+
 ## More documentation
 
 * [docs/API.md](docs/API.md) — endpoints, rules and sample requests
